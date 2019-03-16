@@ -5,6 +5,7 @@ defmodule Servy.Handler do
 
   @doc "Transform the request into a response."
   @spec handle(binary()) :: <<_::64, _::_*8>>
+
   def handle(request) do
     request
     |> parse()
@@ -49,6 +50,7 @@ defmodule Servy.Handler do
           resp_body: <<_::40, _::_*8>>,
           status: 200 | 404
         }
+
   def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
@@ -89,11 +91,16 @@ defmodule Servy.Handler do
   end
 
   @spec format_response(atom() | %{resp_body: binary(), status: any()}) :: <<_::64, _::_*8>>
+  def handle_file({:ok, content}, conv) do
+    %{conv | status: 200, resp_body: content}
+  end
+
   def format_response(conv) do
     """
     HTTP/1.1 #{conv.status} #{status_reason(conv.status)}
     Content-Type: text/html
     Content-Length: #{String.length(conv.resp_body)}
+
     #{conv.resp_body}
     """
   end
@@ -115,6 +122,7 @@ GET /wildthings HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
@@ -126,6 +134,7 @@ GET /bears HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
@@ -137,6 +146,7 @@ GET /bigfoot HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
@@ -148,6 +158,7 @@ GET /bears/1 HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
@@ -159,6 +170,7 @@ GET /about HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
+
 """
 
 response = Servy.Handler.handle(request)
