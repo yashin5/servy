@@ -1,6 +1,11 @@
 defmodule Recurse do
-  def loopy([head | tail] = list) do
+  def loopy([head | tail] = list) when is_number(head) do
+    IO.puts("#{head}")
     loopy(tail)
+  end
+
+  def loopy(empty_list) do
+    IO.puts("Lista vazia")
   end
 end
 

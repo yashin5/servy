@@ -1,7 +1,7 @@
 defmodule Servy.Parser do
+
   alias Servy.Conv
 
-  @spec parse(binary()) :: Servy.Conv.t()
   def parse(request) do
     [top, params_string] = String.split(request, "\n\n")
 
@@ -9,26 +9,35 @@ defmodule Servy.Parser do
 
     [method, path, _] = String.split(request_line, " ")
 
-    headers = parse_headers(header_lines)
+    headers = parse_headers(header_lines, %{})
 
-    params = parse_params(params_string)
+    params = parse_params(headers["Content-Type"], params_string)
 
-    %Conv{
-      method: method,
-      path: path,
-      resp_body: "",
-      status: nil,
-      params: params,
-      headers: headers
-    }
+    %Conv{ 
+       method: method, 
+       path: path,
+       params: params,
+       headers: headers
+     }
   end
 
-  @spec parse_params(binary()) :: %{optional(binary()) => binary()}
-  def parse_params(params_string) do
-    params_string |> String.trim() |> URI.decode_query()
+  def parse_headers([head | tail], headers) do
+    [key, value] = String.split(head, ": ")
+    headers = Map.put(headers, key, value)
+    parse_headers(tail, headers)
   end
 
-  def parse_headers(header_lines) do
-    headers = %{}
+  def parse_headers([], headers), do: headers
+
+  def parse_params("application/x-www-form-urlencoded", params_string) do
+    params_string |> String.trim |> URI.decode_query
   end
+
+  def parse_params(_, _), do: %{}
+
 end
+
+
+
+
+
